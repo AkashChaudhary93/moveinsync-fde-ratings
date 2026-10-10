@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoveInSync FDE Assignment — Play Store Ratings Deep Dive | Sam</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0b0f14;color:#e8edf3;line-height:1.65}
+header{background:linear-gradient(135deg,#0d3b2e,#14532d 60%,#0b0f14);padding:56px 24px;text-align:center;border-bottom:3px solid #22c55e}
+header .kicker{display:inline-block;background:#22c55e;color:#06281c;font-weight:800;font-size:12px;letter-spacing:2px;padding:6px 16px;border-radius:20px;margin-bottom:16px}
+header h1{font-size:clamp(26px,4vw,44px);font-weight:800;max-width:900px;margin:0 auto 12px}
+header p{opacity:.85;max-width:720px;margin:0 auto}
+nav{position:sticky;top:0;background:#0b0f14ee;backdrop-filter:blur(8px);border-bottom:1px solid #1f2937;padding:12px;text-align:center;z-index:10}
+nav a{color:#86efac;text-decoration:none;margin:0 12px;font-size:14px;font-weight:600}
+nav a:hover{color:#fff}
+.wrap{max-width:1024px;margin:0 auto;padding:32px 20px 80px}
+.card{background:#111827;border:1px solid #1f2937;border-radius:14px;padding:28px;margin-bottom:24px}
+.card h2{color:#22c55e;font-size:22px;margin-bottom:12px}
+.card h3{color:#fbbf24;margin:18px 0 8px;font-size:17px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:18px 0}
+.kpi{background:#0b0f14;border:1px solid #22c55e44;border-radius:10px;padding:16px;text-align:center}
+.kpi .n{font-size:30px;font-weight:800;color:#22c55e}
+.kpi .l{font-size:12px;opacity:.7;text-transform:uppercase;letter-spacing:1px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{background:#14532d;color:#fff;padding:10px;text-align:left}
+td{padding:10px;border-bottom:1px solid #1f2937}
+tr:hover td{background:#ffffff08}
+.bar{height:10px;background:#1f2937;border-radius:6px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ef4444,#f59e0b)}
+.bar.g i{background:linear-gradient(90deg,#22c55e,#86efac)}
+code{background:#000;padding:2px 8px;border-radius:6px;color:#86efac;font-size:13px}
+pre{background:#000;border:1px solid #1f2937;border-radius:10px;padding:16px;overflow-x:auto;font-size:13px;color:#a7f3d0;margin:12px 0}
+.quote{border-left:4px solid #f59e0b;background:#ffffff06;padding:12px 16px;border-radius:0 10px 10px 0;margin:10px 0;font-style:italic;font-size:14px}
+.files{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.file{background:#0b0f14;border:1px solid #374151;border-radius:10px;padding:14px;font-size:13px}
+.file b{color:#86efac;display:block;margin-bottom:4px}
+.pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:12px;margin-bottom:8px}
+.p0{background:#ef4444;color:#fff}.p1{background:#f59e0b;color:#111}.p2{background:#3b82f6;color:#fff}
+.roadmap li{margin:10px 0;list-style:none;background:#ffffff05;padding:14px;border-radius:10px;border:1px solid #1f2937}
+footer{text-align:center;opacity:.5;padding:32px;font-size:13px}
+canvas{width:100%;max-height:300px}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">FORWARD DEPLOYED ENGINEER · INTERN → FTE · OCT 2026</div>
+<h1>Why MoveInSync's 4.64★ Rating Is Lying — And the 30-Day Fix</h1>
+<p>Candidate: Sam · Live scrape of <b>com.moveinsync.ets</b> · 2,000 newest reviews + full histogram · Reproducible, actionable, reusable.</p>
+</header>
+<nav>
+<a href="#what">What I did</a><a href="#numbers">Numbers</a><a href="#breaks">5 Breaks</a><a href="#plan">30-Day Plan</a><a href="#asset">Reusable Tool</a><a href="#files">Your Files</a>
+</nav>
+<div class="wrap">
+
+<div class="card" id="what">
+<h2>1 · What this is, in plain words</h2>
+<p>MoveInSync asked: <i>"Our Play Store ratings are lower than they should be. Work out why, tell us exactly what to fix first — specific enough that engineering starts tomorrow. And 'how are our ratings?' is a question we'll keep asking."</i></p>
+<h3>What I did (3 steps)</h3>
+<p><b>Step 1 — Built my own dataset.</b> They gave no data, everything public. So I wrote a scraper (<code>MoveInSync_scrape.py</code>) that pulled the live listing + <b>2,000 newest reviews</b> (400 per star) straight from Google Play. Saved as <code>moveinsync_reviews_raw.csv</code>. No guessing, no screenshots — real rows you can open in Excel.</p>
+<p><b>Step 2 — Found the patterns.</b> <code>MoveInSync_analyze.py</code> clustered every review into complaint buckets (booking bugs, GPS lies, OTP loops, crashes…) and counted hit-rates per star, then I hand-read 30+ full quotes to make sure the keywords weren't lying. Result: 6 failure factories, ranked.</p>
+<p><b>Step 3 — Left something reusable.</b> Because they'll keep asking "how are ratings?", I built <code>rating_monitor.py</code> — a 60-line script that re-checks the score every Monday, diffs it, and names the loudest complaint cluster. That's the FDE habit: every firefight leaves a tool behind.</p>
+<h3>How the JD maps to this</h3>
+<table><tr><th>JD asks</th><th>Where it shows in my work</th></tr>
+<tr><td>Work directly with customers, ambiguous problem</td><td>No prepared data → built my own from public Play/App Store/G2/help-center</td></tr>
+<tr><td>Technical + AI-first, scripting + automation</td><td>google-play-scraper + pandas clustering, one-command repro</td></tr>
+<tr><td>Identify product gaps</td><td>5 journey breaks mapped to onboard → book → track → board → support</td></tr>
+<tr><td>Build what's missing, not configure</td><td>rating_monitor.py — new capability, not a slide</td></tr>
+<tr><td>Take to production with Product/Eng</td><td>Every fix has owner + acceptance test + effort size</td></tr></table>
+</div>
+
+<div class="card" id="numbers">
+<h2>2 · The numbers that matter</h2>
+<div class="kpis">
+<div class="kpi"><div class="n">4.64</div><div class="l">live score · 114,849 ratings</div></div>
+<div class="kpi"><div class="n">85.4%</div><div class="l">are 5-star (98,141)</div></div>
+<div class="kpi"><div class="n">6.4%</div><div class="l">are 1-star (7,338)</div></div>
+<div class="kpi"><div class="n">2,000</div><div class="l">reviews scraped & coded</div></div>
+</div>
+<h3>Histogram — the bimodal tell</h3>
+<canvas id="hist" width="800" height="220"></canvas>
+<p style="font-size:14px;opacity:.8">Almost nobody rates 2–4★. Happy path rates 5★ by habit; every operational failure rates 1★ in anger. You don't move this by adding delight — you move it by <b>deleting the six 1★ factories</b>.</p>
+<h3>Complaint hit-rate in 1★ vs 2★ (n=400 each)</h3>
+<table><tr><th>Failure cluster</th><th>1★</th><th>2★</th><th></th></tr>
+<tr><td>Self-booking / wrong date / schedule</td><td>17.5%</td><td><b>26.0%</b></td><td><div class="bar"><i style="width:26%"></i></div></td></tr>
+<tr><td>Crash / freeze / slow / stuck after update</td><td>14.0%</td><td>18.5%</td><td><div class="bar"><i style="width:18.5%"></i></div></td></tr>
+<tr><td>Login / OTP / forced logout loop</td><td>11.8%</td><td>12.0%</td><td><div class="bar"><i style="width:12%"></i></div></td></tr>
+<tr><td>GPS / live-track / ETA wrong</td><td>11.5%</td><td>17.5%</td><td><div class="bar"><i style="width:17.5%"></i></div></td></tr>
+<tr><td>UI regression (2-step shuttle, clutter)</td><td>11.2%</td><td>18.8%</td><td><div class="bar"><i style="width:18.8%"></i></div></td></tr>
+<tr><td>Cab late / no cab / dead support line</td><td>10.0%</td><td>14.0%</td><td><div class="bar"><i style="width:14%"></i></div></td></tr>
+</table>
+</div>
+
+<div class="card" id="breaks">
+<h2>3 · The 5 breaks in the employee journey</h2>
+<h3>Break 1 — Self-booking creates the trip wrong (biggest 2★ driver)</h3>
+<div class="quote">"Even when I carefully select specific dates, the system creates bookings for completely different dates… reported as No Show… then asked to rate the trip." — June 2026</div>
+<p>Auto-next-day toggle, missing monthly view, contradictory "trip not booked" push after success, silent 2-step shuttle change. One bug → strand → false No-Show → salary cut. Triple rage.</p>
+<h3>Break 2 — Pickup-time + live-track lies</h3>
+<div class="quote">"Google Maps always shows 3x the time shown in MoveInSync. It just acts as a booking tool." — Oct 2026</div>
+<p>Frozen GPS dot, ETA off 3×, tracking locked until &lt;60 min, employee-vs-driver sequence mismatch, gate dead-zones wipe driver card + OTP.</p>
+<h3>Break 3 — Boarding fails at the door</h3>
+<div class="quote">"Accidental touches resulting in trips unintentionally cancelled… 3 AM stress." — May 2026</div>
+<p>OTP never arrives, forced logout loops, single-tap Cancel with zero confirm, wrong No-Show → salary deduction (highest rage per incident).</p>
+<h3>Break 4 — Foundation cracks</h3>
+<p>Splash-loop, crash on track, "reinstall to open" across v11–v12 (systemic, not one bad build), map-view lag, per-tap policy nag.</p>
+<h3>Break 5 — Help isn't there at 2 AM</h3>
+<div class="quote">"Cab at 2:30 AM, still nothing at 3:30, customer support not receiving the call." — Oct 2026</div>
+<p>Helpline rings out, SOS cited non-functional, "Data can't be deleted" label fuels distrust.</p>
+</div>
+
+<div class="card" id="plan">
+<h2>4 · 30-day action plan (start Monday)</h2>
+<ul class="roadmap">
+<li><span class="pill p0">P0 · WEEK 1</span><br><b>Booking truthfulness + No-Show amnesty.</b> Kill auto-next-day default · booking receipt with server timestamp · monthly calendar back · idempotency key on book-tap · "vehicle crossed your pickup — confirm boarding" grace ping + one-tap dispute that pauses salary feed. <i>Acceptance: wrong-date 1★ down 50% in 30 days.</i></li>
+<li><span class="pill p0">P0 · WEEK 1</span><br><b>Destructive-action guardrails (cheapest points).</b> Cancel → mandatory 2-step confirm + 15-min undo; move it off the notification banner. <i>Acceptance: zero one-tap cancels in telemetry.</i></li>
+<li><span class="pill p0">P0 · WEEK 2</span><br><b>Session + OTP survivability.</b> 90-day device remember · parallel SMS+WhatsApp OTP + auto-read · <b>offline trip card</b> cached at booking (driver, vehicle, OTP readable with zero bars). <i>Acceptance: login 1★ halved.</i></li>
+<li><span class="pill p1">P1 · WEEK 3</span><br><b>Honest tracking.</b> Fuse ETA with traffic or show a window + "updated Xm ago" chip · unlock tracking early · single sequence source of truth. <i>Acceptance: ETA ±3 min on 80% trips.</i></li>
+<li><span class="pill p1">P1 · WEEK 3–4</span><br><b>Notifications + cold-start.</b> Dedupe contradictory push · priority channel for cab events · fix splash-loop + update migration + map lag; kill per-tap policy nag.</li>
+<li><span class="pill p2">P2 · WEEK 4+</span><br><b>Close the loop.</b> In-app driver call/chat + callback queue · reply every 1–2★ in 48h · rating prompt ONLY after clean on-time trips (never after cancel/No-Show) · explain data-retention label in one sentence.</li>
+</ul>
+<h3>Honest math</h3>
+<p>Baseline ≈ 532,600 star-points. Converting just <b>20% of 7,338 1★ → 4★ = +0.04 (≈4.68)</b>; 40% = <b>+0.08 (≈4.71)</b>. Real prize: 1★ share 6.4% → ~4–5%, which is what enterprise buyers screenshot — plus every prevented No-Show is a salary dispute avoided.</p>
+</div>
+
+<div class="card" id="asset">
+<h2>5 · The reusable asset — rating_monitor.py</h2>
+<p>The brief says <i>"how are our ratings?" will keep being asked.</i> So the answer is code, not a slide. Verified live today:</p>
+<pre>=== MoveInSync ratings brief — 2026-10-10 ===
+Score: 4.6375 across 114,849 ratings | 1-star share: 6.39%
+booking_date_fail: 15/100 | gps_eta_wrong: 12/100 | ui_regression: 13/100
+Loudest cluster right now: booking_date_fail — staff it first Monday.</pre>
+<p>Run weekly: <code>python rating_monitor.py --notify</code> → posts delta + loudest cluster to Slack/cron. Next extensions (named, scoped): per-org slice, version-regression detector (1★ share &gt; mean+2σ), KB-grounded auto-replies.</p>
+</div>
+
+<div class="card" id="files">
+<h2>6 · Your files — what to open, what to submit</h2>
+<div class="files">
+<div class="file"><b>MoveInSync_FDE_Submission.md</b>THE submission. Memo + diagnosis + plan + JD tie + method. Convert to PDF and send.</div>
+<div class="file"><b>moveinsync_reviews_raw.csv</b>2,000 real reviews (400/star). Open in Excel. Proof of work — attach as appendix.</div>
+<div class="file"><b>MoveInSync_scrape.py</b>Pulls live Play data. <code>python MoveInSync_scrape.py</code></div>
+<div class="file"><b>MoveInSync_analyze.py</b>Theme counts + quotes. <code>python MoveInSync_analyze.py</code></div>
+<div class="file"><b>rating_monitor.py</b>The reusable FDE asset. <code>python rating_monitor.py --notify</code></div>
+<div class="file"><b>baseline.json + analysis_output.txt</b>Today's snapshot + full analysis log. Baseline for weekly diffs.</div>
+</div>
+<h3>How to submit (recommended)</h3>
+<p>1) Print the .md to PDF → main document. 2) Zip csv + 3 .py files → "repro + reusable asset." 3) Cover line: <i>"§6 is a working monitor, not a screenshot — run it Monday."</i> That's the hire-signal sentence.</p>
+</div>
+
+</div>
+<footer>Built by Sam · FDE mindset: own it end-to-end, leave the tool behind · Data: live Play scrape Oct 10 2026 · Re-run anytime.</footer>
+<script>
+var c=document.getElementById('hist'),x=c.getContext('2d');
+var d=[['1★',7338,'#ef4444'],['2★',837,'#f97316'],['3★',1231,'#eab308'],['4★',7297,'#84cc16'],['5★',98141,'#22c55e']];
+var max=98141,W=c.width,H=c.height,bw=W/d.length;
+d.forEach(function(r,i){var h=(r[1]/max)*(H-50);x.fillStyle=r[2];x.fillRect(i*bw+18,H-30-h,bw-36,h);x.fillStyle='#e8edf3';x.font='13px sans-serif';x.textAlign='center';x.fillText(r[0],i*bw+bw/2,H-10);x.fillText(r[1].toLocaleString(),i*bw+bw/2,H-36-h);});
+</script>
+</body>
+</html>

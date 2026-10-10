@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-10",
+  "score": 4.6375,
+  "ratings_total": 114849,
+  "histogram": [
+    7338,
+    837,
+    1231,
+    7297,
+    98141
+  ],
+  "one_star_share": 0.0639,
+  "low_sample_n": 100,
+  "p0_clusters_in_1_2star": {
+    "booking_date_fail": 15,
+    "crash_freeze_slow": 9,
+    "login_otp_logout": 7,
+    "gps_eta_wrong": 12,
+    "ui_regression": 13,
+    "cablate_support": 9
+  }
+}
